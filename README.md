@@ -41,8 +41,10 @@ Publish vào exchange `TEXT_TO_VIDEO_EXCHANGE_REQUEST` với header `type=proces
 }
 ```
 
-`request_id` và `prompt` là bắt buộc. Prompt chỉ chấp nhận tiếng Anh; ngôn ngữ khác bị chặn trước workflow và trả lỗi `422` với message `language not support, only support english`. `duration` tùy chọn, từ 1 đến 15 giây; `seed` tùy chọn.
+`request_id` và `prompt` là bắt buộc. Prompt chỉ chấp nhận tiếng Anh; ngôn ngữ khác bị chặn trước workflow và trả lỗi `422` với trường `error` là `language not support, only support english`. `duration` tùy chọn, từ 1 đến 15 giây; `seed` tùy chọn.
 
-Result được publish vào exchange `TEXT_TO_VIDEO_EXCHANGE_RESULT`, queue `TEXT_TO_VIDEO_QUEUE_RESULT`. Thành công trả `output_url`; NSFW trả status code 422 và `error.type=nsfw_content_detected`. Nếu moderation lỗi kỹ thuật, worker fail closed và không upload video.
+Result được publish vào exchange `TEXT_TO_VIDEO_EXCHANGE_RESULT`, queue `TEXT_TO_VIDEO_QUEUE_RESULT`. Thành công trả `output_url`; NSFW trả status code 403 và `error.type=nsfw_content_detected`. Nếu moderation lỗi kỹ thuật, worker fail closed và không upload video.
+
+Result giữ cùng envelope với worker `i2i-2.1`: `request_id`, `feature_code`, `created_at`, `metadata`, `status`, `output_url`, `server_information`, `error`, `is_success`, `metric` và `timestamp`. Khi lỗi có thêm `status_code`.
 
 # ai-text-to-video

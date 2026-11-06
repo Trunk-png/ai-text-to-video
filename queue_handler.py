@@ -1,7 +1,12 @@
 import json
+import logging
 import os
+import asyncio
+from datetime import datetime
 
 import aio_pika
+
+logger = logging.getLogger(__name__)
 
 
 class QueueHandler:
@@ -10,6 +15,8 @@ class QueueHandler:
         self.channel = None
         self.result_exchange = None
         self.type = os.getenv("T2V_TYPE", "process_text_to_video")
+        self.publish_timeout = float(os.getenv("RABBITMQ_PUBLISH_TIMEOUT", "15"))
+        self.publish_retries = int(os.getenv("RABBITMQ_PUBLISH_RETRIES", "3"))
 
     async def connect(self):
         url = f"amqp://{os.getenv('RABBITMQ_USER', 'guest')}:{os.getenv('RABBITMQ_PASS', 'guest')}@{os.getenv('RABBITMQ_HOST', 'localhost')}:{os.getenv('RABBITMQ_PORT', '5672')}/"
@@ -25,6 +32,17 @@ class QueueHandler:
         return request_queue
 
     async def publish(self, payload: dict):
-        message = aio_pika.Message(json.dumps(payload, ensure_ascii=False).encode(), content_type="application/json", delivery_mode=aio_pika.DeliveryMode.PERSISTENT, headers={"type": self.type})
-        await self.result_exchange.publish(message, routing_key="", timeout=float(os.getenv("RABBITMQ_PUBLISH_TIMEOUT", "15")))
+        payload["timestamp"] = datetime.now().isoformat()
+        body = json.dumps(payload, ensure_ascii=False).encode()
+        for attempt in range(1, self.publish_retries + 1):
+            try:
+                message = aio_pika.Message(body, content_type="application/json", delivery_mode=aio_pika.DeliveryMode.PERSISTENT, headers={"type": self.type})
+                await self.result_exchange.publish(message, routing_key="", timeout=self.publish_timeout)
+                logger.info("Sent result: %s", json.dumps(payload, ensure_ascii=False))
+                return True
+            except Exception:
+                logger.exception("Publish attempt %s/%s failed", attempt, self.publish_retries)
+                if attempt < self.publish_retries:
+                    await asyncio.sleep(2)
+        raise RuntimeError(f"Failed to publish result after {self.publish_retries} attempts")
 
