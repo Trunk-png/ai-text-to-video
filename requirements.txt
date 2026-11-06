@@ -1,0 +1,14 @@
+aio-pika
+aiohttp>=3.9.0
+python-dotenv
+websockets
+opencv-python-headless
+numpy
+setproctitle
+requests
+minio
+pillow
+redis
+nsfw-image-detector==0.1.2
+timm>=1.0.13
+

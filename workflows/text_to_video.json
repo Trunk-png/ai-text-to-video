@@ -1,0 +1,332 @@
+{
+  "92": {
+    "inputs": {
+      "filename_prefix": "video/Pika_H3_Flex_T2V",
+      "format": "auto",
+      "format.codec": "auto",
+      "codec": "auto",
+      "video": [
+        "140:130",
+        0
+      ]
+    },
+    "class_type": "SaveVideo",
+    "_meta": {
+      "title": "Save Video",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "140:119": {
+    "inputs": {
+      "vae_name": "minimax_h3_video_vae_int8_convrot.safetensors"
+    },
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "Load VAE",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "140:123": {
+    "inputs": {
+      "sampler_name": "lcm"
+    },
+    "class_type": "KSamplerSelect",
+    "_meta": {
+      "title": "KSamplerSelect",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "140:127": {
+    "inputs": {
+      "unet_name": "minimax_h3_fl2va_pruned_int8_convrot.safetensors",
+      "weight_dtype": "default"
+    },
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "Load Diffusion Model",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "140:128": {
+    "inputs": {
+      "clip_name": "qwen3vl_32b_minimax_h3_nvfp4_awq.safetensors",
+      "type": "minimax",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "Load CLIP",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "140:129": {
+    "inputs": {
+      "noise_seed": 914757319624586
+    },
+    "class_type": "RandomNoise",
+    "_meta": {
+      "title": "RandomNoise",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "140:133": {
+    "inputs": {
+      "value": 5
+    },
+    "class_type": "PrimitiveFloat",
+    "_meta": {
+      "title": "Float (duration)",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "140:143": {
+    "inputs": {
+      "sigmas": "1.0, 0.972973, 0.923077, 0.8, 0.571429, 0.333333, 0.0"
+    },
+    "class_type": "ManualSigmas",
+    "_meta": {
+      "title": "ManualSigmas",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "140:149": {
+    "inputs": {
+      "value": 480
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "Int",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "140:150": {
+    "inputs": {
+      "value": 832
+    },
+    "class_type": "PrimitiveInt",
+    "_meta": {
+      "title": "Int",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "152": {
+    "inputs": {
+      "clip_name": "qwen3vl_8b_int8_convrot.safetensors",
+      "type": "qwen_image",
+      "device": "default"
+    },
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "Qwen 8B — prompt check",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "140:134": {
+    "inputs": {
+      "lora_name": "pika_h3_flex_fl2va_v1_bf16.safetensors",
+      "strength_model": 1,
+      "model": [
+        "140:127",
+        0
+      ]
+    },
+    "class_type": "LoraLoaderModelOnly",
+    "_meta": {
+      "title": "Load LoRA",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "140:132": {
+    "inputs": {
+      "expression": "max(5, round(a * 16)) + (5 - (max(5, round(a * 16)) % 17)) % 17",
+      "values.a": [
+        "140:133",
+        0
+      ]
+    },
+    "class_type": "ComfyMathExpression",
+    "_meta": {
+      "title": "Math Expression",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "140:148": {
+    "inputs": {
+      "expression": "round(a/32)*32",
+      "values.a": [
+        "140:149",
+        0
+      ]
+    },
+    "class_type": "ComfyMathExpression",
+    "_meta": {
+      "title": "Math Expression",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "140:147": {
+    "inputs": {
+      "expression": "round(a/32)*32",
+      "values.a": [
+        "140:150",
+        0
+      ]
+    },
+    "class_type": "ComfyMathExpression",
+    "_meta": {
+      "title": "Math Expression",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "151": {
+    "inputs": {
+      "prompt": "",
+      "clip_name": "qwen3vl_8b_int8_convrot.safetensors",
+      "language_filter": "all_languages",
+      "clip": [
+        "152",
+        0
+      ]
+    },
+    "class_type": "DetectNSFWText",
+    "_meta": {
+      "title": "Detect NSFW Text",
+      "aux_id": "trungnk-png/comfyUI-detect-nsfw-text",
+      "ver": "94deca9ddd703432410c84911087975a106c3381"
+    }
+  },
+  "140:131": {
+    "inputs": {
+      "prompt": [
+        "151",
+        0
+      ],
+      "width": [
+        "140:148",
+        1
+      ],
+      "height": [
+        "140:147",
+        1
+      ],
+      "length": [
+        "140:132",
+        1
+      ],
+      "clip": [
+        "140:128",
+        0
+      ],
+      "vae": [
+        "140:119",
+        0
+      ]
+    },
+    "class_type": "MiniMaxH3ImageToVideo",
+    "_meta": {
+      "title": "MiniMax H3 Text to Video",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "140:126": {
+    "inputs": {
+      "model": [
+        "140:134",
+        0
+      ],
+      "conditioning": [
+        "140:131",
+        0
+      ]
+    },
+    "class_type": "BasicGuider",
+    "_meta": {
+      "title": "Basic Guider",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "140:125": {
+    "inputs": {
+      "noise": [
+        "140:129",
+        0
+      ],
+      "guider": [
+        "140:126",
+        0
+      ],
+      "sampler": [
+        "140:123",
+        0
+      ],
+      "sigmas": [
+        "140:143",
+        0
+      ],
+      "latent_image": [
+        "140:131",
+        1
+      ]
+    },
+    "class_type": "SamplerCustomAdvanced",
+    "_meta": {
+      "title": "SamplerCustomAdvanced",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "140:122": {
+    "inputs": {
+      "samples": [
+        "140:125",
+        0
+      ],
+      "vae": [
+        "140:119",
+        0
+      ]
+    },
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  },
+  "140:130": {
+    "inputs": {
+      "fps": 16,
+      "bit_depth": "auto",
+      "color_space": "sRGB",
+      "chroma_subsampling": "auto",
+      "codec": "none",
+      "images": [
+        "140:122",
+        0
+      ]
+    },
+    "class_type": "CreateVideo",
+    "_meta": {
+      "title": "Create Video",
+      "cnr_id": "comfy-core",
+      "ver": "0.43.0"
+    }
+  }
+}

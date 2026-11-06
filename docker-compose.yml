@@ -1,0 +1,56 @@
+x-log-base: &log-base
+  restart: unless-stopped
+  logging:
+    driver: json-file
+    options:
+      max-size: 10m
+      max-file: "3"
+  env_file: [.env]
+
+services:
+  ai-worker:
+    build:
+      context: .
+      dockerfile: docker/comfyui.dockerfile
+    image: ai-text-to-video:${IMAGE_VERSION:-latest}
+    environment:
+      COMFY_HOME: /opt/ComfyUI
+      PORT: "8188"
+      COMFY_LISTEN: 127.0.0.1
+      PYTORCH_CUDA_ALLOC_CONF: garbage_collection_threshold:0.95,max_split_size_mb:2048
+      CUDA_MODULE_LOADING: LAZY
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute
+    volumes:
+      - ./data/models:/opt/ComfyUI/models
+      - ./data/custom_nodes:/opt/ComfyUI/custom_nodes
+      - ./upload:/opt/ComfyUI/upload
+      - ./temp:/opt/ComfyUI/temp
+      - ./workflows:/opt/ComfyUI/workflows:ro
+      - ./worker.py:/opt/ComfyUI/worker.py:ro
+      - ./moderation.py:/opt/ComfyUI/moderation.py:ro
+      - ./comfyui_client.py:/opt/ComfyUI/comfyui_client.py:ro
+      - ./queue_handler.py:/opt/ComfyUI/queue_handler.py:ro
+      - ./minio_handler.py:/opt/ComfyUI/minio_handler.py:ro
+      - ./redis_handler.py:/opt/ComfyUI/redis_handler.py:ro
+      - ./docker/start-services.sh:/opt/start-services.sh:ro
+    ipc: host
+    cap_add: [IPC_LOCK]
+    ulimits:
+      memlock: -1
+    healthcheck:
+      test: [CMD-SHELL, "curl -fs http://localhost:8188/system_stats >/dev/null && test $$(($$(date +%s)-$$(stat -c %Y /tmp/worker_heartbeat))) -lt 90"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 300s
+    <<: *log-base
+    deploy:
+      replicas: ${REPLICATES:-1}
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["0"]
+              capabilities: [compute]
+
