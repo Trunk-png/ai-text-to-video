@@ -9,6 +9,7 @@ requests
 minio
 pillow
 redis
+langid==1.1.6
 nsfw-image-detector==0.1.2
 timm>=1.0.13
 

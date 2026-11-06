@@ -11,6 +11,7 @@ import time
 from pathlib import Path
 
 from dotenv import load_dotenv
+from langid.langid import LanguageIdentifier, model as langid_model
 
 from comfyui_client import ComfyUIClient
 from minio_handler import MinioHandler
@@ -23,6 +24,20 @@ logging.basicConfig(level=getattr(logging, os.getenv("LOG_LEVEL", "INFO").upper(
 logger = logging.getLogger("t2v-worker")
 ROOT = Path(__file__).resolve().parent
 WORKFLOW_PATH = Path(os.getenv("WORKFLOW_PATH", ROOT / "workflows" / "text_to_video.json"))
+LANGUAGE_IDENTIFIER = LanguageIdentifier.from_modelstring(langid_model, norm_probs=True)
+
+
+class InvalidPromptLanguage(ValueError):
+    def __init__(self, detected_language: str):
+        self.detected_language = detected_language
+        super().__init__("language not support, only support english")
+
+
+def validate_english_prompt(prompt: str) -> None:
+    """Reject prompts that are not classified as English."""
+    language, _confidence = LANGUAGE_IDENTIFIER.classify(prompt)
+    if language != "en":
+        raise InvalidPromptLanguage(language)
 
 
 def configure_workflow(prompt: str, duration: float | None, seed: int, request_id: str) -> dict:
@@ -69,6 +84,7 @@ class Worker:
         prompt = str(data.get("prompt", "")).strip()
         if not request_id or len(prompt) < 3:
             raise ValueError("request_id and prompt (at least 3 characters) are required")
+        validate_english_prompt(prompt)
         duration = data.get("duration")
         if duration is not None and not 1 <= float(duration) <= 15:
             raise ValueError("duration must be between 1 and 15 seconds")
@@ -102,6 +118,10 @@ class Worker:
                             continue
                         result = await self.process(data)
                         await self.redis.finish(request_id, "success")
+                    except InvalidPromptLanguage as exc:
+                        result = {"request_id": request_id, "status": "error", "status_code": 422, "is_success": False, "error": {"type": "invalid_prompt_language", "message": str(exc), "details": {"required_language": "en", "detected_language": exc.detected_language}}}
+                        if request_id:
+                            await self.redis.finish(request_id, "invalid_prompt_language")
                     except NSFWContentDetected as exc:
                         result = {"request_id": request_id, "status": "error", "status_code": 422, "is_success": False, "error": {"type": "nsfw_content_detected", "message": str(exc), "details": {"prediction": "nsfw", "confidence": exc.confidence, "threshold": float(os.getenv("NSFW_THRESHOLD", "0.8")), "timestamp_seconds": round(exc.timestamp, 3)}}}
                         if request_id:
