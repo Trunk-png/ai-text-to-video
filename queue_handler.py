@@ -38,7 +38,10 @@ class QueueHandler:
             try:
                 message = aio_pika.Message(body, content_type="application/json", delivery_mode=aio_pika.DeliveryMode.PERSISTENT, headers={"type": self.type})
                 await self.result_exchange.publish(message, routing_key="", timeout=self.publish_timeout)
-                logger.info("Sent result: %s", json.dumps(payload, ensure_ascii=False))
+                logger.info(
+                    "Sent result:\n%s",
+                    json.dumps(payload, ensure_ascii=False, indent=2),
+                )
                 return True
             except Exception:
                 logger.exception("Publish attempt %s/%s failed", attempt, self.publish_retries)

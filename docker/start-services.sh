@@ -8,7 +8,7 @@ cleanup() {
 trap cleanup EXIT TERM INT
 
 python main.py --listen "${COMFY_LISTEN:-127.0.0.1}" --port "${PORT:-8188}" \
-  --disable-metadata --preview-method none --highvram --force-channels-last &
+  --disable-metadata --preview-method none --force-channels-last &
 COMFYUI_PID=$!
 
 for _ in $(seq 1 120); do
